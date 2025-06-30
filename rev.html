@@ -1,88 +1,87 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>حاسبة 3% وتحويل إلى الدرهم</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>حاسبة الريفونو</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f3f4f6;
-      padding: 30px;
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      padding: 40px;
       text-align: center;
     }
-
     .container {
       background: white;
-      padding: 25px;
+      padding: 30px;
       max-width: 400px;
       margin: auto;
       border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
-
     input, button {
-      width: 100%;
-      padding: 12px;
+      padding: 10px;
       margin: 10px 0;
+      width: 100%;
       font-size: 16px;
-      border-radius: 8px;
       border: 1px solid #ccc;
+      border-radius: 8px;
     }
-
     button {
-      background: #111827;
+      background-color: #111827;
       color: white;
       cursor: pointer;
     }
-
     .result {
       margin-top: 20px;
       font-size: 18px;
-      color: #111;
+      color: #333;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>حاسبة 3% وتحويل للدهم</h2>
+    <input type="number" id="usdInput" placeholder="دخل مبلغ بالدولار ($)" />
+    <button onclick="calculate()">حسب</button>
+    <div class="result" id="result">...</div>
+  </div>
 
-<div class="container">
-  <h2>حاسبة 3% وتحويل المبلغ إلى الدرهم</h2>
-  <input type="number" id="usdInput" placeholder="دخل المبلغ بالدولار ($)">
-  <button onclick="calculate()">احسب</button>
-  <div class="result" id="result">...</div>
-</div>
+  <script>
+    async function calculate() {
+      const usd = parseFloat(document.getElementById("usdInput").value);
+      const resultBox = document.getElementById("result");
 
-<script>
-  async function calculate() {
-    const usd = parseFloat(document.getElementById("usdInput").value);
-    const resultBox = document.getElementById("result");
+      if (isNaN(usd) || usd <= 0) {
+        resultBox.innerText = "⚠️ عافاك دخل مبلغ صحيح.";
+        return;
+      }
 
-    if (isNaN(usd) || usd <= 0) {
-      resultBox.innerText = "⚠️ عافاك دخل مبلغ صحيح.";
-      return;
+      resultBox.innerText = "⏳ جاري جلب سعر الصرف...";
+
+      try {
+        const response = await fetch('https://api.exchangerate.host/convert?from=USD&to=MAD');
+        const data = await response.json();
+
+        // نتحقق واش النتيجة موجودة
+        if (!data.result) {
+          throw new Error("سعر الصرف غير متاح");
+        }
+
+        const rate = data.result;
+        const percent = usd * 0.03;
+        const mad = percent * rate;
+
+        resultBox.innerHTML = `
+          ✅ <strong>3%:</strong> ${percent.toFixed(2)} $<br>
+          💰 <strong>بالدرهم:</strong> ${mad.toFixed(2)} MAD<br>
+          🔁 <small>سعر الصرف: 1 USD = ${rate.toFixed(4)} MAD</small>
+        `;
+      } catch (error) {
+        console.error(error);
+        resultBox.innerText = "❌ تعذر جلب سعر الصرف. المرجو المحاولة لاحقاً.";
+      }
     }
-
-    resultBox.innerText = "⏳ جار جلب سعر الصرف...";
-
-    try {
-      const response = await fetch('https://api.exchangerate.host/convert?from=USD&to=MAD');
-      const data = await response.json();
-
-      const rate = data.result; // ✅ هنا الفرق، ماشي data.rates
-      const percent = usd * 0.03;
-      const mad = percent * rate;
-
-      resultBox.innerHTML = `
-        ✅ <strong>3%:</strong> ${percent.toFixed(2)} $<br>
-        💰 <strong>بالدرهم:</strong> ${mad.toFixed(2)} MAD<br>
-        🔁 <small>سعر الصرف: 1 USD = ${rate.toFixed(4)} MAD</small>
-      `;
-    } catch (error) {
-      resultBox.innerText = "❌ تعذر جلب سعر الصرف. حاول مجددًا.";
-      console.error(error);
-    }
-  }
-</script>
-
+  </script>
 </body>
 </html>
